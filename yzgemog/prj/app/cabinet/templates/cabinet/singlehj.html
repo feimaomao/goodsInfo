@@ -1,0 +1,298 @@
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf8">
+    <script src="/gemo/sp/static/sp/jquery-1.11.2.js"></script>
+    <script src="/gemo/sp/static/sp/bootstrap/js/bootstrap.min.js"></script>
+    <link href="/gemo/sp/static/sp/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/gemo/sp/static/sp/jquery-ui-1.9.2/ui/minified/jquery-ui.min.js"></script>
+    <link type="text/css"         href="/gemo/sp/static/sp/jquery-ui-1.9.2/themes/redmond/jquery-ui-1.9.2.custom.css" rel="stylesheet" />
+    <!--<script type="text/javascript" src="/site_lib/jquery-1.7.2.min.js"></script>-->
+    <script type="text/javascript" src="/gemo/sp/static/sp/ajaxupload/ajaxupload.js"></script>
+    <style type="text/css">
+        .sj {width:200px}
+    </style>
+
+    <title>配置货架</title>
+
+</head>
+<body>
+<script>
+    $(document).ready(function() {
+        clearCabinetInfo()
+        setfmDialog()
+        getCabinetinfo()
+        $("#button__save").bind("click", function(){
+            setCabinetGeom()
+        })
+        
+        $("#button__del").bind("click",function(){
+            var CabinetCode = $("#CabinetCode").val();
+           
+            $("#delete_hjcode").attr("value", CabinetCode)
+            delCabinetGeom()
+        })
+        
+    })
+    getCabinetinfo = function(){
+        $("#CabinetCode").blur(function(){
+            var CabinetCode = $("#CabinetCode").val();
+            $.ajax({
+                    type: "POST",
+                    url: "/gemo/getthehjdata",
+                    data:{"item":"cabinetcode", "value":CabinetCode, "comp":"yk"},
+                    dataType: "json",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    success:function(data){                        
+                        if (data !== null){                      //注意data的返回值                         
+                            $("#hjuuid").val(data["_id"])
+                            $("#CabinetName").val(data['cabinetname']);
+                            $("#CabinetType").val(data['cabinettype']);
+                            $("#CabinetWidth").val(data['width']);
+                            $("#ShelfType").val(data['shelftype'].join(","));
+                            $("#ShelfHeight").val(data['shelfheight'].join(","));
+                            $("#ShelfDepth").val(data['shelfdepth'].join(",")); 
+                            
+                        } else {
+                            $("#hjuuid").val('')
+                            $("#CabinetName").val('');
+                            $("#CabinetType").val('');
+                            $("#CabinetWidth").val('');
+                            $("#ShelfType").val('');
+                            $("#ShelfHeight").val('');
+                            $("#ShelfDepth").val('');
+                        }
+                    },
+                    error:function(){
+                        alert("error")
+                    }
+                });
+            })
+    }
+    
+    setCabinetGeom=function(){
+        var hjuuid = $("#hjuuid").val()
+        var CabinetName = $("#CabinetName").val()   
+        var CabinetType = $("#CabinetType").val();
+        var CabinetCode = $("#CabinetCode").val();
+        var CabinetWidth = $("#CabinetWidth").val();
+        var ShelfType = $("#ShelfType").val();
+        var ShelfHeight = $("#ShelfHeight").val();
+        var ShelfDepth = $("#ShelfDepth").val()
+        
+        
+        if (ShelfHeight =="" || ShelfType == "" || CabinetCode == "" ){
+            
+            return alert("数据不能为空")
+        }
+        
+        if (Number(CabinetWidth)>0){}
+        else { return alert("宽度不是数值")}
+        
+        var xx = ShelfHeight.split(",")
+        var yy= ShelfType.split(",")
+        
+        if (xx.length !== yy.length){
+            return alert("层高和层类型不匹配")
+        }
+        
+        
+        
+        var x
+        for (x in xx) {
+            if (Number(xx[x])) {}
+            else { return alert("层高不是数值")}
+        }
+        
+        var y
+        for (y in yy) {
+            if (yy[y] == "a" || yy[y] == "b" || yy[y] == "as" || yy[y] == "bs" || yy[y].charAt(0)=='g'){}
+            else { return alert("层类型错误")}
+        }
+        
+        $.ajax({
+            type: "POST",
+            url: "/gemo/getshelfmax",
+            data:{"cabinetcode":CabinetCode,"comp":"yk", "parentcomp":"yz"},                        
+            dataType: "json",
+            cache:false,
+            async:false,
+            
+            success:function(data){
+                if (xx.length< data["shelfmax"]) {
+                    alert("层数设置错误,该货架在陈列数据中为"+data["shelfmax"]+"层")
+                } else {
+                    $.ajax({
+                        type: "POST",
+                        url: "/gemo/setthehjdata",
+                        data:{"cabinettype":CabinetType, "cabinetcode":CabinetCode, "width":CabinetWidth, "shelftype":ShelfType, "shelfheight":ShelfHeight, "shelfdepth":ShelfDepth, "cabinetname":CabinetName, "hjuuid":hjuuid,"comp":"yk", "parentcomp":"yz", "hjuuid":hjuuid},                        
+                        dataType: "json",
+                        cache:false,
+                        async:false,
+                        
+                        success:function(data){
+                            $("#hjuuid").val(data["_id"])
+                            $("#CabinetName").val( data['cabinetname']);
+                            $("#CabinetType").val(data['cabinettype']);
+                            $("#CabinetWidth").val(data['width']);
+                            $("#ShelfType").val( data['shelftype'].join(","));
+                            $("#ShelfHeight").val(data['shelfheight'].join(","));
+                            $("#ShelfDepth").val(data['shelfdepth'].join(","));
+                            alert(data["tag"])
+                        }
+                                     
+                    });
+                    
+                }
+            }
+        })
+        
+        
+        
+    }
+    
+    
+    clearCabinetInfo = function(){
+        $("#hjuuid").val('');
+        $("#CabinetCode").val('');
+        $("#CabinetName").val('');
+        $("#CabinetType").val('');
+        $("#CabinetWidth").val('');
+        $("#ShelfType").val('');
+        $("#ShelfHeight").val('');
+        $("#ShelfDepth").val('');
+    }
+        
+    delCabinetGeom=function(){           
+        $("#deletehj").dialog('open')        
+    };
+    
+    
+    
+    setfmDialog = function(){       
+        $("#deletehj").dialog({
+            bgiframe: true,
+            autoOpen: false,
+            height: 250,
+            modal: true,
+            buttons: {
+                '确认': function() {      //确认                    
+                    $.ajax({
+                        type: "POST",
+                        url: "/gemo/delthehjdata",
+                        data:{"item":"cabinetcode", "value":$("#CabinetCode").val(), "comp":"yk"},                        
+                        dataType: "text",
+                        cache:false,
+                        async:false,
+                        //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                        success:function(data){
+                            
+                            clearCabinetInfo()
+                            alert(data);
+                            
+                        },
+                        error:function(){
+                            
+                            alert('删除货架失败')
+                        }
+                    });
+                    $(this).dialog('close')
+                    
+                },
+                '撤销': function() {      //
+                        $(this).dialog('close');
+                }           
+            },
+            close: function() {
+                
+            }
+        });        
+    }
+
+</script>
+<div id='div_all'>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+              <!--<img alt="Brand" src="http://www.sinopec.com/s/images/logo.gif">-->
+            </a>
+          </div>
+          <h4 class="navbar-text">设置货架                    </h4>
+          <button type="button" id="button__save" class="btn  btn-success  navbar-btn">保存</button>
+          
+          <button type="button" id="button__del" class="btn  btn-danger  navbar-btn">删除</button>          
+            
+            
+        </div>
+    </nav>
+    <form class="form-horizontal">
+        <input style="display: none" id="hjuuid" value="" readonly>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">货架代码</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="CabinetCode" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">货架名称</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="CabinetName" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">货架类型</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="CabinetType" placeholder="">       
+            </div>
+            <h4>例如 "中岛"</h4>           
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">货架宽度:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="CabinetWidth" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">层板类型</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="ShelfType" placeholder="" >      
+            </div>
+            <h4>例如 "a,a,a,a,a"</h4>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">层高:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="ShelfHeight" placeholder="" >
+            </div>
+            <h4>例如 "250,250,250,250,250"</h4>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">层板深度:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="ShelfDepth" placeholder="" >
+            </div>
+            <h4>例如 "200,200,200,200,180"</h4>
+        </div>
+        
+            <div class="col-sm-3">
+                <h3>说明</h3>
+                <p>层板类型有：a、as、b、bs</p>
+            </div>
+        
+        
+    </form>
+    
+    
+    
+</div>
+<div id="deletehj" title="删除货架" sytle = "visibility:hidden">
+    <label  style="display:block"  for="delete_hjcode">货架代码</label>
+    <input  style="display:block"  type="text" id="delete_hjcode" class="text" style="border:1px;border-bottom-style:none;border-top-style:none;border-left-style:none;border-right-style:none;"/><br>
+    <label  style="display:block"  for="delete_SpaceTitle">请确定删除货架!</label>
+</div>
+</body>
+
+

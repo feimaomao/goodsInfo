@@ -1,0 +1,202 @@
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf8">
+    <script type="text/javascript" src="/gemo/sp/static/sp/jquery-1.7.2.min.js"></script>
+
+    <script type="text/javascript" src="/gemo/sp/static/sp/jeditable/jeditable.js"></script>
+    <script type="text/javascript" src="/gemo/sp/static/sp/htmltable2csv/htmltable2csv.js"></script>
+    <script src="/gemo/sp/static/sp/tool/template.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/gemo/sp/static/sp/json/json2.js"></script>
+    <style type="text/css">
+        /* 
+
+	TableCloth	
+	by Alen Grakalic, brought to you by cssglobe.com
+	
+            */
+            
+            /* general styles */
+            
+            table, td{
+                    font:100% Arial, Helvetica, sans-serif; 
+            }
+            table{border-collapse:collapse;margin:1em 0; width:800px;}
+            th, td{text-align:left;padding:.5em;border:1px solid #fff;}
+            th{background:#328aa4 url(tr_back.gif) repeat-x;color:#fff;}
+            td{background:#e5f1f4;}
+            
+            /* tablecloth styles */
+            
+            tr.even td{background:#e5f1f4;}
+            tr.odd td{background:#f8fbfc;}
+            
+            th.over, tr.even th.over, tr.odd th.over{background:#4a98af;}
+            th.down, tr.even th.down, tr.odd th.down{background:#bce774;}
+            th.selected, tr.even th.selected, tr.odd th.selected{}
+            
+            td.over, tr.even td.over, tr.odd td.over{background:#ecfbd4;}
+            td.down, tr.even td.down, tr.odd td.down{background:#bce774;color:#fff;}
+            td.selected, tr.even td.selected, tr.odd td.selected{background:#bce774;color:#555;}
+            
+            /* use this if you want to apply different styleing to empty table cells*/
+            td.empty, tr.odd td.empty, tr.even td.empty{background:#fff;}    
+    </style>
+
+    <title>批量导入保存商品尺寸</title>
+
+</head>
+<body>
+<!--用script标签的好处是默认不会显示在页面上,调用的时候再才显示-->
+<!--这里是点击ok后显示的信息-->
+<script type="text/html" id="spdata_tmpl">
+    <thead>
+        <tr><td>条型码</td><td>商品代码</td><td>商品名称</td><td>高(mm)</td><td>宽(mm)</td><td>深(mm)</td>
+    </thead>
+    <tbody>
+        <% for ( var i = 0; i < spdata.length; i++ ) { %>
+        <tr lancode=<%=spdata[i].spcode%> >
+            <td><%=spdata[i].barcode%></td>
+            <td><%=spdata[i].spcode%></td>
+            <td><%=spdata[i].spname%></td>
+            <td><%=spdata[i].height%></td>
+            <td><%=spdata[i].width%></td>
+            <td><%=spdata[i].thickness%></td>            
+            <% if (spdata[i].tag !=='') { %>
+                <td><%=spdata[i].tag%></td>
+            <% } %>
+        </tr>
+        <% } %>
+    </tbody>       
+</script>
+
+<script>
+    //待处理
+    if(typeof(String.prototype.trim) === "undefined")
+        {
+            String.prototype.trim = function(){
+                return String(this).replace(/^\s+|\s+$/g, '');
+            };
+        }
+    
+    spdata = [];//商品资料信息
+    uploadtag = true;          //上传控制标记
+    
+    
+    $(document).ready(function() {
+        //点击导入，显示导入信息的页面
+        $("#button__io").bind('click', function(){
+        //alert("x")
+        //触发显示事件，这个事件在div_2的event里面定义的
+            $("#div_2").trigger('showedit', [{"Id":'y'}])
+        });
+        //点击保存
+        $("#button__savesp").click(function(){
+            if (uploadtag && spdata.length>0) {
+                $.ajax({
+                    type: "POST",
+                    url: "/gemo/setSpdatas",
+                    //公司信息在cookie里面上传
+                    data:{"spdatas":JSON.stringify(spdata), "comp":"yk", "parentcomp":"yz"},
+                    dataType: "json",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    error:function(data, testStatus){alert("无法上传数据")},
+                    success:function(data){	
+                        spdata = data;
+                        var x = {};
+                        x.spdata = spdata;
+                        $("#div_2").html("<table id='landata_table'>"+tmpl("spdata_tmpl", x )+"</table>")
+                        alert("上传数据完毕")
+                    }   
+                })
+            } else {
+                alert("不能上传,请检查数据并重新导入")
+            }
+		});
+
+         $('#div_2').editable(function(data){
+             //data:[{"Id":'y'}]    ？？？
+             // trim去除数据首尾空格
+                spdata = csv2json(data.trim(), 't');
+                var x = {};
+                x.spdata = spdata;
+             //???
+                return "<table id='landata_table'>"+tmpl("spdata_tmpl", x )+"</table>"
+            }, { 
+             type      : 'textarea',
+             indicator : 'import...',
+             tooltip   : 'Click to edit...',
+             data      : function(value, setting){
+                return $(value).table2CSV({separator: '\t',delivery:"value"});
+             },
+             cancel    : 'Cancel',
+             event     : 'showedit',
+             submit    : 'OK'
+         });
+    });
+    
+    
+    csv2json = function(spdatacsv, tt){
+        uploadtag = true;
+        var i, list1, list2=[], result = [],tag;
+        list1 = spdatacsv.split("\n");
+        list1.splice(0,1);
+        for (i in list1){
+            if (tt == 't') {
+                list2.push(list1[i].split("\t"))				
+            }else {
+                list2.push(list1[i].split(","))
+            }
+        }
+        for (i in list2){
+			//console.log("p"+list2[i][5]+"P")
+            tag = []
+            if (list2[i].length !== 6 ) {                
+                tag.push("字段数错误")
+                uploadtag = false
+            }
+            if (list2[i][0] == '' || list2[i][1]=='' || list2[i][2]=='' ||list2[i][3]=='' || list2[i][4]=='' || list2[i][5]=='' ) {
+                tag.push("字段值为空")
+                uploadtag = false
+            }
+            if (Number(list2[i][3]) && Number(list2[i][3]) && Number(list2[i][3])) {
+                
+            } else {
+                tag.push("高宽深不是数值")
+                uploadtag = false
+            }
+            result.push({
+                barcode: list2[i][0].trim(),
+                spcode:list2[i][1].trim(),
+                spname:list2[i][2].trim(),
+                height:list2[i][3].trim(),
+                width:list2[i][4].trim(),
+                thickness:list2[i][5].trim(),
+                tag:tag.join("__")
+            })
+        }
+        
+        return result
+    }
+</script>
+<div id='div_all'>
+    <h1>批量导入保存商品尺寸</h1>
+    <p>
+        <input id="button__savesp" type="button" value="保存">
+        <input id="button__io" type="button" value="导入">
+    </p>
+    <div class="edit_area" id="div_2" style="height:200;align=left">
+        <table >
+            <!--未导入信息前的导航-->
+        <tr><th>商品条码</th><th>商品代码</th><th>商品名称</th><th>高(mm)</th><th>宽(mm)</th><th>深(mm)</th>
+        
+        </tr>
+        
+        </table>
+    </div>
+</div>
+</body>
+
+

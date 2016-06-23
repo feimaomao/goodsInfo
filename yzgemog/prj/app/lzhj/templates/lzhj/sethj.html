@@ -1,0 +1,870 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="zh">
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/underscore/underscore1.4.4.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/jquery-ui-1.8.18.custom/js/jquery-ui-1.8.18.custom.min.js"></script>
+    <link href="/gemo/lzhj/static/lzhj/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
+    <script src="/gemo/lzhj/static/lzhj/bootstrap/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/js/kinetic-v4.3.3.js"></script>
+    
+    <!--<link type="text/css" href="/site_lib/jquery-ui-1.8.18.custom/css/custom-theme/jquery-ui-1.8.20.custom.css" rel="stylesheet" />-->
+    <style type="text/css">
+        /* 
+
+        TableCloth        
+        by Alen Grakalic, brought to you by cssglobe.com
+        
+            */
+        
+            
+            /* general styles */
+            
+            table, td{
+                    font:100% Arial, Helvetica, sans-serif; 
+            }
+            table{border-collapse:collapse;margin:1em 0; }
+            th, td{text-align:left;padding:.5em;border:1px solid #fff;}
+            th{background:#328aa4 url(tr_back.gif) repeat-x;color:#fff;}
+            td{background:#e5f1f4;}
+            
+            /* tablecloth styles */
+            
+            tr.even td{background:#e5f1f4;}
+            tr.odd td{background:#f8fbfc;}
+            
+            th.over, tr.even th.over, tr.odd th.over{background:#4a98af;}
+            th.down, tr.even th.down, tr.odd th.down{background:#bce774;}
+            th.selected, tr.even th.selected, tr.odd th.selected{}
+            
+            td.over, tr.even td.over, tr.odd td.over{background:#ecfbd4;}
+            td.down, tr.even td.down, tr.odd td.down{background:#bce774;color:#fff;}
+            td.selected, tr.even td.selected, tr.odd td.selected{background:#bce774;color:#555;}
+            
+            /* use this if you want to apply different styleing to empty table cells*/
+            td.empty, tr.odd td.empty, tr.even td.empty{background:#fff;}
+            
+
+
+
+    </style>
+
+<head>
+    <title>配置货架</title>
+    
+</head>
+<body>
+    <h1>配置货架</h1>
+    <div id="hjBox" style="position:absolute;left:30px;" >
+            <table>
+                <tr><td><label  style=""  for="UserCode">货架代码:</label></td><td><input  style=""  type="text" id="hj_code"></td></tr>
+                <tr><td><label  style=""  for="Password">货架类型:</label></td><td><input  style=""  type="text" id="hj_name"></td></tr>
+                <tr><td><label  style=""  for="Password">立柱代码:</label></td><td><input  style=""  type="text" id="lz_code"></td></tr>
+                <tr><td><label  style=""  for="Password">立柱类型:</label></td><td><input  style=""  type="text" id="lz_name"></td></tr>
+                <tr><td><label  style=""  for="Password">货架宽度(毫米):</label></td><td><input  style=""  type="text" id="hj_width"></td></tr>
+                <tr align="center"><td valign="center"><input  style=""  type="button" id="hj_draw" value="画图"></td><td valign="center"><input  style=""  type="button" id="hj_save" value="保存"></td></tr>
+                <tr><td >层板</td><td><input  style=""  type="hidden" id="cb_id"></td></tr>
+                <tr><td><label  style=""  for="Password">类型</label></td><td><input  style=""  type="text" id="cb_type"></td></tr>
+                <tr><td><label  style=""  for="Password">厚度(毫米):</label></td><td><input  style=""  type="text" id="cb_hd"></td></tr>
+                <tr><td><label  style=""  for="Password">深度(毫米):</label></td><td><input  style=""  type="text" id="cb_sd"></td></tr>
+                <tr><td><label  style=""  for="Password">角度:</label></td><td><input  style=""  type="text" id="cb_jd"></td></tr>
+                
+                <tr align="center"><td valign="center"><input  style=""  type="button" id="cb_set" value="设置属性"></td><td valign="center"><input  style=""  type="button" id="cb_del" value="删除层板"></tr>
+            
+            </table>
+        
+            
+        
+    </div>
+    <div id="container" style="position:absolute;left:280px;" ></div>
+    </div>
+    <script type="text/javascript">
+    
+    var initpo = {x:150, y:10}
+    
+    var initli = 0.5
+    
+    
+    
+    
+    var stage, layer, newhj
+    //var hj = {}
+    
+    
+    var fminit = function(){
+        stage = new Kinetic.Stage({
+        container: 'container',
+        width: 1000,
+        height: 1200
+      });
+
+       layer = new Kinetic.Layer();
+        stage.add(layer);
+      
+    }
+    
+    var lz = function(lz, po, li){
+         var rect1 = new Kinetic.Rect({
+            x: po.x,
+            y: po.y,
+            width: lz.w*li,
+            height: lz.l*li,
+            fill: 'white',
+            stroke: 'black',
+            strokeWidth: 1
+          });
+      
+      
+      
+        layer.add(rect1);
+        var i, h, hole
+      
+        for (i=0; i<lz.hc; i=i+1){
+          
+          if (i !== lz.hc-1) {
+              h = po.y + lz.tl*li + (lz.hl+lz.hh)* li*i
+          } else {
+              h = po.y + lz.tl*li + (lz.hl+lz.hh)* li*i + (lz.dl-lz.hh)*li
+          }
+          
+         
+          hole = new Kinetic.Rect({
+              x: po.x+(lz.w-lz.hw)*0.5*li,
+              y: h,
+              width: lz.hw*li,
+              height: lz.hh*li,
+              fill: 'black',
+              stroke: 'black',
+              strokeWidth: 0,
+              id: 'hold'+i
+            });
+          
+          hole.on("click", function(){
+                var hole_x = Number(this.getId().substring(4,6))+1
+                var data = {
+                    type:'a' , //类型
+                    l:'5',    //厚度(mm)
+                    s:'200',    //深度
+                    //w:hj.w,  //宽度(mm)
+                    t:'0',    //角度(mm)
+                    hole_x:hole_x, //孔位置
+                    po_y:'',   //y轴坐标
+                    xc:'',     //相隔孔数
+                    xh:''     //相隔高度 可陈列高度
+                    
+                    
+                }
+                
+                
+                newhj.addShelf(data)
+                newhj.resetcbdata()
+                stage.draw()
+            })
+          
+          layer.add(hole)
+        }
+        layer.draw()
+      }
+      
+      //底座
+      var dz =  function(hj, po, li){
+         var lz = hj.lz1
+         var x, y, w, h
+         x = po.x+(lz.w-lz.hw)*0.5*li
+         y = po.y + lz.tl*li + (lz.hl+lz.hh)* li*(lz.hc-1) + lz.dl*li
+         w = hj.w * li
+         h = lz.l * li - y - 1
+         //console.log(h)
+         var rect1 = new Kinetic.Rect({
+            x: x,
+            y: y,
+            width: w,
+            height: h,
+            fill: 'grey',
+            stroke: 'black',
+            strokeWidth: 1
+          });
+        layer.add(rect1)
+        layer.draw()
+      }
+      
+      //层板
+      var id = function(){
+        var x = 0
+        return function(){
+            x = x + 1
+            return x
+        }
+      }
+      
+      var setid = id()
+      
+      var cb = function(hj, po,li, cbdata, ismove){
+        //console.log(cbdata)
+        var newid = setid()
+        var hole_x = cbdata.hole_x
+        var data = {
+            type:cbdata.type, //类型
+            l:cbdata.l,    //厚度(mm)
+            s:cbdata.s,    //深度
+            w:hj.w,  //宽度(mm)
+            t:cbdata.t,    //角度(mm)
+            hole_x:hole_x, //孔位置
+            po_y:'',   //y轴坐标
+            xc:cbdata.xc,     //相隔孔数
+            xh:cbdata.xh,      //相隔高度 可陈列高度
+            id:newid
+            
+        }
+        
+        
+        var setNote = function(){
+            if (data.type === 'a' || data.type === 'as'){
+                //alert(data.type)
+                return '层板:'+data.type + '___厚度(mm):'+ data.l +'___深度(mm)' + data.s + '___角度:' + data.t+'\n孔数:' + data.xc + '___可陈列高度:'+ data.xh
+            } else {
+                //alert(data.type)
+                return '挂钩:'+data.type + '\n孔数:' + data.xc + '___可陈列高度:'+ data.xh
+            }
+        }
+        
+        var lz = hj.lz1
+        var x, y, w, h
+        x = po.x+(lz.w-lz.hw)*0.5*li
+        
+        if (hole_x == lz.hc) {
+            y = po.y + lz.tl*li + (lz.hl+lz.hh)* li*(lz.hc-1) + (lz.dl-lz.hh)*li
+            data.po_y = y
+            
+            var cbText = new Kinetic.Text({
+                x: x + 30,
+                y: y - 30,
+                text: '可陈列高度:'+ data.xh,
+                fontSize: 16,
+                fontFamily: 'Calibri',
+                fill: '#555',
+                width: hj.w,
+                padding: 0,
+                align: 'left',
+                id:'text'+ newid
+            
+              });
+            layer.add(cbText)
+            layer.draw()
+        } else {
+            y = po.y + lz.tl*li + (lz.hl+lz.hh)* li*(hole_x -1)
+            data.po_y = y
+            
+            var cbText = new Kinetic.Text({
+                x: x + 30,
+                y: y - 30,
+                text: setNote(),
+                fontSize: 16,
+                fontFamily: 'Calibri',
+                fill: '#555',
+                width: hj.w,
+                padding: 0,
+                align: 'left',
+                id:'text'+ newid
+              });
+            layer.add(cbText)
+            layer.draw()
+        }
+        w = hj.w * li
+        h = lz.hh * li
+        
+        var gethole_x = function(lz, po, li, posy){
+            if (posy <= po.y + lz.tl.li){
+                return 1
+            }
+            
+            if (posy >= po.y + lz.tl*li + (lz.hl+lz.hh)* li*(lz.hc-1)){
+                return lz.hc - 1
+            }
+            
+            var i, h1, h2
+            for (i=0; i<lz.hc-1; i = i + 1){
+                h1 = po.y + lz.tl*li + (lz.hl+lz.hh)* li*(i-1)
+                h2 = po.y + lz.tl*li + (lz.hl+lz.hh)* li* i
+                if ( posy > h1 && posy<=h2){
+                    return i
+                }
+            }
+        }
+        
+        var fmfillcolor = "black"
+        
+        if (data.type === "a" || data.type === "as"){
+            fmfillcolor = 'black'
+        }
+        
+        if (data.type === "b" || data.type === "bs"){
+            fmfillcolor = 'white'
+        }
+        
+        var rect1 = new Kinetic.Rect({
+            x: x,
+            y: y,
+            width: w,
+            height: h,
+            fill: fmfillcolor,
+            stroke: 'green',
+            strokeWidth: 1,
+            id:'cb'+newid,
+            draggable: ismove,
+            dragBoundFunc: function(pos) {
+              var newhole_x = gethole_x(lz, po, li, pos.y)
+              var newy = po.y + lz.tl*li + (lz.hl+lz.hh)* li*(newhole_x-1)
+              var content = setNote()
+              cbText.setY(newy-50)
+              cbText.setText(content)
+              data.po_y = newy
+              data.hole_x = newhole_x
+              newhj.resetcbdata()
+              setcbbox()
+              return {
+                x: this.getAbsolutePosition().x,
+                y: newy
+              }
+            }
+          });
+        
+        
+        
+        rect1.on('click', function(){
+            newhj.resetcbsfill()
+            rect1.setFill('red')
+            cbText.setFill('red')
+            setcbbox()
+            stage.draw()
+        })
+        
+        var setcbbox = function(){
+            $("#cb_id").val(data.id)
+            $("#cb_type").val(data.type)
+            $("#cb_hd").val(data.l)
+            $("#cb_sd").val(data.s)
+            $("#cb_jd").val(data.t)
+        }
+        
+        
+        layer.add(rect1)
+        layer.draw()
+        return {
+            getdata:function(){
+                return data
+            },
+            setdata:function(thedata){
+                data = thedata
+                var content = setNote()
+                if (data.type == 'a' || data.type == 'as') {
+                    rect1.setFill('black')
+                } else {
+                    rect1.setFill('white')
+                }
+                cbText.setText(content)
+                cbText.setY(data.po_y-30)
+                stage.draw()
+            },
+            setfill:function(){
+                if (data.type == 'a' || data.type == 'as') {
+                    rect1.setFill('black')
+                } else {
+                    rect1.setFill('white')
+                }
+                
+                cbText.setFill("black")
+                stage.draw()
+            },
+            destroy:function(){
+                cbText.destroy()
+                rect1.destroy()
+                stage.draw()
+            }
+        }
+      }
+      
+      var hjtext = function(hj, po, li){
+        var lText = new Kinetic.Text({
+            x: po.x +hj.w*li + 20,
+            y: po.y + hj.lz1.l * 0.4 * li,
+            text: '货架高度(mm):'+hj.lz1.l +'\n\n总孔数：'+hj.lz1.hc,
+            fontSize: 18,
+            fontFamily: 'Calibri',
+            fill: '#555',
+            width: 150,
+            padding: 20,
+            align: 'left'
+          });
+        
+        var wText = new Kinetic.Text({
+            x: po.x + hj.w*0.4 *li,
+            y: po.y + hj.lz1.l *li+ 10,
+            text: '货架宽度(mm):'+hj.w,
+            fontSize: 18,
+            fontFamily: 'Calibri',
+            fill: '#555',
+            width: 150,
+            padding: 20,
+            align: 'center'
+          });
+        
+          layer.add(lText)
+          layer.add(wText)
+          layer.draw()
+      }
+      
+      var chj = function(hj, po, li){
+        fminit()
+        
+        
+        
+        var po1 = po
+        lz(hj.lz1, po1, li)
+        var po2 = {x:po.x+hj.w*li, y:po.y}
+        lz(hj.lz2, po2, li)
+        dz(hj, po1, li)
+        hjtext(hj, po, li)
+        
+        
+        var cbs = {}
+        var i, thecb
+        if (hj.hjcbs.length == 0){
+            //thecb = new cb(hj, po1,li, hj.lz1.hc, false)
+            var initdata = {
+                    type:'a' , //类型
+                    l:'5',    //厚度(mm)
+                    s:'200',    //深度
+                    //w:hj.w,  //宽度(mm)
+                    t:'0',    //角度(mm)
+                    hole_x:hj.lz1.hc, //孔位置
+                    po_y:'',   //y轴坐标
+                    xc:'',     //相隔孔数
+                    xh:''     //相隔高度 可陈列高度  
+                    
+                }
+            
+            thecb = new cb(hj, po1,li, initdata, true)
+            cbs[thecb.getdata().id] = thecb
+        }  else {
+            for ( i=0;i<hj.hjcbs.length; i=i+1){
+                thecb = new cb(hj, po1,li, hj.hjcbs[i], true)
+                cbs[thecb.getdata().id] = thecb
+            }
+        }
+        
+        
+        
+        //cb(hj, po1,li, 13)
+        //cb(hj, po1,li, 23)
+        //cb(hj, po1,li, 33)
+        //cb(hj, po1,li, 43)
+        
+        var rcbsdata = function(){
+            var cbsdata = []
+            var i
+            for (i in cbs){
+                cbsdata.push(cbs[i].getdata())
+            }
+            cbsdata2 = _.sortBy(cbsdata, function(data){
+                return -data.po_y
+            })
+            var cbslen = cbsdata.length
+            
+            for (i = 0; i<cbslen; i = i+ 1){
+                if (i == 0){
+                    cbsdata2[i].xc = 0
+                }else{
+                    cbsdata2[i].xc = cbsdata2[i-1].hole_x - cbsdata2[i].hole_x - 1
+                }
+            }
+            for (i=cbslen; i>0; i = i-1){
+                if (i == cbslen){
+                    cbsdata2[i-1].xh = (cbsdata2[i-1].po_y - initpo.y)/li
+                } else {
+                    cbsdata2[i-1].xh = (cbsdata2[i-1].po_y - cbsdata2[i].po_y)/li
+                }
+            }
+            return cbsdata2
+        }
+        
+        return {
+            destroy:function(){
+                
+                //alert("des")
+                layer.destroy()
+                stage.destroy()
+            },
+            addShelf : function(data){
+                
+                var thecb = cb(hj, po1,li, data, true)
+                cbs[thecb.getdata().id] = thecb
+            },
+            
+            delcb:function(cb_id){
+                
+                
+                cbs[cb_id].destroy()
+                cbs[cb_id] = undefined
+                
+                delete cbs[cb_id]
+                
+                
+            },
+            setcbdata:function(cb_id, cb_type, cb_hd, cb_sd, cb_jd){
+                var cbsdata2 = rcbsdata()
+                var cbslen = cbsdata2.length
+                
+                var thedata = {}
+                
+                
+                
+                var i;
+                
+                for (i=0; i<cbslen; i=i+1){
+                    var id = cbsdata2[i].id
+                    
+                    if (id == cb_id){
+                        thedata = cbsdata2[i]
+                        thedata.type = cb_type
+                        thedata.l = cb_hd
+                        thedata.s = cb_sd
+                        thedata.t = cb_jd
+                        cbs[id].setdata(thedata)
+                    }
+                    
+                    
+                }
+            }, 
+            print:function(){
+                var i
+                for (i in cbs){
+                    console.log(cbs[i])
+                }
+            },
+            getcbdata:function(id){
+                return cbs[id].getdata()
+            },
+            getcbsdata:function(){
+                return rcbsdata()
+            },
+            resetcbdata:function(){
+                var cbsdata2 = rcbsdata()
+                var cbslen = cbsdata2.length
+                /*for (i = 0; i<cbslen; i = i+ 1){
+                    console.log(cbsdata2[i].xh)
+                    console.log(cbsdata2[i].xc)
+                }*/
+                
+                var i;
+                
+                for (i=0; i<cbslen; i=i+1){
+                    var id = cbsdata2[i].id
+                    cbs[id].setdata(cbsdata2[i])
+                }
+            },
+            resetcbsfill:function(){
+                var i
+                for (i in cbs){
+                    cbs[i].setfill()
+                }
+                
+            }
+        }
+      }
+      //newhj = chj(hj, initpo, initli)
+
+      
+      
+      
+      
+      // add the shape to the layer
+      
+
+      // add the layer to the stage
+      //stage.add(layer);
+    </script>
+    <script>
+        var clearhjinfo = function(){
+            $("input[type=text]").each(function(){
+                $(this).val("")
+            })
+            
+            $("#lz_code").removeData("lz")
+            $("#cb_id").removeData("hjcbs")
+        }
+        
+        var sethjinfo1 = function(){
+            var hj = {}
+            
+            var lz = $("#lz_code").data("lz")
+            if (lz === undefined){
+                alert("没有立柱")
+                return false
+            }
+            
+            hj.lz1 = lz
+            hj.lz2 = lz
+              
+            
+            hj.code = $("#hj_code").val()
+            hj.name = $("#hj_name").val()
+            hj.w = Number($("#hj_width").val())
+            
+            if (hj.code =="" || hj.name== "" || hj.w == ""  ){
+            
+                alert("数据不能为空")
+                return false
+            }
+            
+            if (Number(hj.w)>0){}
+            else {
+                alert("货架宽度不是数值")
+                return false
+            }
+            
+            hj.hjcbs = []
+            
+            return hj
+        }
+        
+        var sethjinfo2 = function(){
+            var hj = {}
+            
+            var lz = $("#lz_code").data("lz")
+            if (lz === undefined ){
+                alert("没有立柱")
+                return false
+            }
+            
+            hj.lz1 = lz
+            hj.lz2 = lz
+              
+            
+            hj.code = $("#hj_code").val()
+            hj.name = $("#hj_name").val()
+            hj.w = Number($("#hj_width").val())
+            
+            if (hj.code =="" || hj.name== "" || hj.w == ""  ){
+            
+                alert("数据不能为空")
+                return false
+            }
+            
+            if (Number(hj.w)>0){}
+            else {
+                alert("货架宽度不是数值")
+                return false
+            }
+            
+            hj.hjcbs = newhj.getcbsdata()
+            
+            if (hj.hjcbs.length == 1){
+                alert("未定义层板")
+            }
+                
+                
+            
+            return hj
+        }
+        
+        
+        var savehjinfo  = function(hjinfo){
+                $.ajax({
+            type: "POST",
+            url: "/gemo/getshelfmax",
+            data:{"cabinetcode":hjinfo.code,"comp":"yk", "parentcomp":"yz"},                        
+            dataType: "json",
+            cache:false,
+            async:false,
+            
+            success:function(data){
+                if (hjinfo.hjcbs.length< data["shelfmax"]) {
+                    alert("层数设置错误,该货架在陈列数据中为"+data["shelfmax"]+"层")
+                } else {
+                                        var hjinfostr = JSON.stringify(hjinfo);
+                                        $.ajax({
+                                                type: "POST",
+                                                url: "/gemo/savehjinfo", 
+                                                data:{"hjinfo":hjinfostr, "comp":'yk', "parentcomp":'yz',},                        
+                                                dataType: "text",
+                                                cache:false,
+                                                async:false,
+                                                //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                                                success:function(data){
+                                                        alert("保存数据成功")
+                                                },
+                                                error:function(){
+                                                        alert("保存数据失败")
+                                                }
+                                        });
+                                        
+                                }
+            }
+        })
+                
+            
+        }
+        
+        
+        
+        
+        $(document).ready(function() {
+        
+        
+        
+        clearhjinfo()
+        
+        
+        
+        
+        
+        $("#hj_draw").bind("click",function(){
+            //alert("xx")
+            
+            var hj = sethjinfo1()
+    
+            //var hj = {code:'hjdfd', name:'name', lz1:lz, lz2:lz, w:1200, hjcbs:[]}
+            
+            if (hj == false) {
+                return 
+            }
+            
+            
+            if (newhj !== undefined){
+                newhj.destroy()
+                newhj = chj(hj, initpo, initli)
+            } else {
+                newhj = chj(hj, initpo, initli)
+            }
+            
+            
+           
+        })
+        
+        $("#hj_save").bind("click", function(){
+            var hj = sethjinfo2()
+            if (hj == false) {
+                alert("数据有误，不能保存")
+            } else {
+                savehjinfo(hj)
+            }
+            
+        })
+        
+        $("#hj_code").blur(function(){
+            var hjcode = $("#hj_code").val();            
+            
+            $.ajax({
+                    type: "POST",
+                    url: "/gemo/gethjinfo",
+                    data:{"value":hjcode, "item":"code", "comp":"yk", "parentcomp":'yz'},                        
+                    dataType: "json",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    success:function(data){
+                        if (data == "nodata"){
+                            return 
+                        }
+                        var hj = data
+                        $("#lz_code").data("lz", hj.lz1)
+                        
+                        $("#hj_code").attr('value', hj['code']);
+                            $("#hj_name").attr('value', hj['name']);
+                                $("#lz_code").attr('value', hj['lz1']['code']);
+                                $("#lz_name").attr('value', hj['lz1']['name']);
+                                $("#hj_width").attr('value',hj['w']);
+                        
+                        if (newhj !== undefined){
+                            newhj.destroy()
+                            newhj = chj(hj, initpo, initli)
+                        } else {
+                            newhj = chj(hj, initpo, initli)
+                        }
+                        
+                    },
+                    error:function(){
+                    //alert("没有这类立柱")
+                    }
+                });
+            })
+            
+            
+          
+              
+           
+    
+         
+           
+           
+            
+            
+            
+            
+        
+        
+        
+        $("#lz_code").blur(function(){
+            var lz_code = $("#lz_code").val();            
+            
+            $.ajax({
+                    type: "POST",
+                    url: "/gemo/getlzinfo",
+                    data:{"value":lz_code, "item":"code", "comp":'yk','parentcomp':'yz'},                        
+                    dataType: "json",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    success:function(data){
+                        
+                        if (data.name == undefined){
+                            $("#lz_name").val('立柱未定义')
+                        } else {
+                            
+                            $("#lz_name").val(data.name)
+                            $("#lz_code").data('lz', data)
+                            
+                        }
+                        
+                    },
+                    error:function(){
+                        alert("没有这类立柱")
+                        }
+                            });
+                    })
+        
+        
+        
+        $("#cb_set").bind("click", function(){
+            if (newhj !== undefined){
+                var cb_id = $("#cb_id").val()
+                var cb_type = $("#cb_type").val()
+                var cb_hd = $("#cb_hd").val()
+                var cb_sd = $("#cb_sd").val()
+                var cb_jd = $("#cb_jd").val()
+                newhj.setcbdata(cb_id, cb_type, cb_hd, cb_sd, cb_jd)
+            }
+            
+            
+            
+        })
+        
+        $("#cb_del").bind("click", function(){
+            if (newhj !== undefined){
+                var cb_id = $("#cb_id").val()
+                
+                newhj.delcb(cb_id)
+            }
+            
+            
+            
+        })
+    })
+        
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,346 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf8">
+    <script src="/gemo/sp/static/sp/jquery-1.11.2.js"></script>
+    <script src="/gemo/sp/static/sp/bootstrap/js/bootstrap.min.js"></script>
+    <link href="/gemo/sp/static/sp/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/gemo/sp/static/sp/jquery-ui-1.9.2/ui/minified/jquery-ui.min.js"></script>
+    <link type="text/css"         href="/gemo/sp/static/sp/jquery-ui-1.9.2/themes/redmond/jquery-ui-1.9.2.custom.css" rel="stylesheet" />
+    <!--<script type="text/javascript" src="/site_lib/jquery-1.7.2.min.js"></script>-->
+    <script type="text/javascript" src="/gemo/sp/static/sp/ajaxupload/ajaxupload.js"></script>
+    <script type="text/javascript" src="/gemo/sp/static/sp/json/json2.js"></script>
+    <style type="text/css">
+       
+    </style>
+
+    <title>设置商品外形尺寸和图像</title>
+
+</head>
+<body>
+<script>
+    //src', '/site_media/sp2/'+spcode+'.jpg?x='+number获取图片信息？？
+    //img/delspimg???
+    $(document).ready(function() {
+        //将页面的信息注释为空
+        clearspinfo();
+        //jquery方法，控件spcode失去焦点时触发
+        $("#spcode").blur(function(){
+            //发送ａｊａｘ请求，得到图片信息，并将图片显示出来
+            getSpinfo();
+        });
+
+        //点击保存的时候触发
+        $("#button__save").bind('click', function(){
+            setSpGeom()
+        });
+
+        /*$("#button__imgdel").bind('click', function(){
+            delspimg()
+        })
+
+        $("#button__imgshow").bind("click", function(){
+            var spcode = $("#spcode").val()
+            if (spcode != "") {
+                window.open("/site_media/upload/"+spcode+".jpg", "imgshow")
+            } else {
+                alert('请先输入商品代码')
+            }            
+        })*/
+
+        //点击上传商品图片的时候调用，这里进行商品图像的上传
+        var button = $('#button__imgsave'); //, interval;
+        new AjaxUpload(button,{
+            action: 'http://127.0.0.1:5003/upload',
+            name: 'qqfile',
+{#            responseType:"json",#}
+            onSubmit : function(file, ext){
+                // change button text, when user selects file
+{#                button.text('Uploading');#}
+                // If you want to allow uploading only 1 file at time
+                // you can disable upload button
+{#                this.disable();#}
+                // Uploding -> Uploading. -> Uploading...
+{#                interval = window.setInterval(function(){#}
+{#                    var text = button.text();#}
+{#                    if (text.length < 13){#}
+{#                        button.text(text + '.');#}
+{#                    } else {#}
+{#                        button.text('Uploading');#}
+{#                    }#}
+{#                }, 200);#}
+            },
+
+            onComplete: function(file, response){
+                alert("success");
+{#                button.text('上传商品图像');#}
+{#                window.clearInterval(interval);#}
+{##}
+{#                // enable upload button#}
+{#                this.enable();#}
+{##}
+{#                // add file to the list#}
+{#                fmstr = JSON.parse(response);#}
+{##}
+{#                theinfo = fmstr[0];#}
+{#                //console.log(response)#}
+{#                var number = Math.random();#}
+{#                //$("#imgfile").html(fmstr["label"])#}
+{#                //$("#SpPic").attr('src', '/site_media/upload/'+fmstr["spcode"]+'.jpg?x='+number);#}
+{#                var spcode = theinfo["spcode"];#}
+{#                $("#spcode").attr("value", spcode);#}
+{#                getSpinfo();#}
+{##}
+{#                //$("#SpBoxPic").attr('src', '/site_media/sp2/'+spcode+'.jpg?x='+number);#}
+{#                if (theinfo["success"]) {#}
+{#                    alert("上传成功")#}
+{#                } else{#}
+{#                    alert(theinfo["error"])#}
+{#                }#}
+            }
+        });
+    });
+
+    //发送ajax请求，得到图片信息，并将图片和商品信息显示出来
+    //没有得到就全部就不显示，
+    getSpinfo = function(){
+        
+        var spcode = $("#spcode").val();
+        var number = Math.random();
+        $.ajax({
+            type: "POST",
+            url: "/gemo/gettheSpdata",
+            data:{ 'item':'spcode', 'value':spcode},
+            dataType: "json",
+            cache:false,
+            async:false,
+            //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+            success:function(data){
+                if (data !== null){                 //注意data的返回值
+                    $("#spuuid").val(data["_id"]);
+                    $("#spname").val(data['spname']);
+                    $("#spformat").val(data['spformat']);
+                    $("#spwidth").val(data['width']);
+                    $("#spheight").val(data['height']);
+                    $("#spthickness").val(data['thickness']);
+                    $("#spbar").val(data['barcode']);
+                    $("#SpBoxPic").attr('src', '/site_media/sp2/'+spcode+'.jpg?x='+number);
+                    $("#SpBoxPic_r").attr('src', '/site_media/sp2/'+spcode+'r.jpg?x='+number);
+                    $("#SpBoxPic_c").attr('src', '/site_media/sp2/'+spcode+'c.jpg?x='+number);
+                    $("#SpBoxPic_d").attr('src', '/site_media/sp2/'+spcode+'d.jpg?x='+number);
+                    $("#SpBoxPic_b").attr('src', '/site_media/sp2/'+spcode+'b.jpg?x='+number);
+                } else {
+                    $("#spuuid").val("");
+                    $("#spname").val('');
+                    $("#spformat").val('');
+                    $("#spwidth").val('');
+                    $("#spheight").val('');
+                    $("#spthickness").val('');
+                    $("#spbar").val('');
+                    $("#SpBoxPic").attr('src', '/site_media/sp2/'+spcode+'.jpg?x='+number);
+                    $("#SpBoxPic_r").attr('src', '/site_media/sp2/'+spcode+'r.jpg?x='+number);
+                    $("#SpBoxPic_c").attr('src', '/site_media/sp2/'+spcode+'c.jpg?x='+number);
+                    $("#SpBoxPic_d").attr('src', '/site_media/sp2/'+spcode+'d.jpg?x='+number);
+                    $("#SpBoxPic_b").attr('src', '/site_media/sp2/'+spcode+'b.jpg?x='+number);
+                }
+            }
+        });
+    };
+
+    //将页面的要输入信息注释为空
+    clearspinfo = function(){
+        $("#spcode").val("");
+        $("#spname").val("");
+        $("#spformat").val("");
+        $("#spwidth").val("");
+        $("#spheight").val("");
+        $("#spthickness").val("");
+        $("#spbar").val("");
+    };
+    //删除商品图片，参数是判断删除哪个图片，html里面调用触发
+    ///img/delspimg访问这个地址，然后还是设置请求图片，达到刷新图片效果
+    delspimg =  function(side){
+        var spcode = $("#spcode").val();
+        if (spcode !==""){
+            $.ajax({
+                type: "POST",
+                url: "http://127.0.0.1:5003/upload",
+                data:{"spcode":spcode, "side":side},
+                dataType: "text",
+                cache:false,
+                async:false,
+
+                //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                success:function(data){
+                    var number = Math.random();
+                    $("#SpBoxPic").attr('src', '/site_media/sp2/'+spcode+'.jpg?x='+number);
+                    $("#SpBoxPic_r").attr('src', '/site_media/sp2/'+spcode+'r.jpg?x='+number);
+                    $("#SpBoxPic_c").attr('src', '/site_media/sp2/'+spcode+'c.jpg?x='+number);
+                    $("#SpBoxPic_d").attr('src', '/site_media/sp2/'+spcode+'d.jpg?x='+number);
+                    $("#SpBoxPic_b").attr('src', '/site_media/sp2/'+spcode+'b.jpg?x='+number);
+                    alert(data)
+                },
+
+            });
+        } else{
+            alert('请先输入商品代码')
+        }
+
+    };
+    //新建或者修改商品信息
+    setSpGeom=function(){
+        var spuuid= $("#spuuid").val();
+        var spcode = $("#spcode").val();
+        var spname = $("#spname").val();
+        var spformat = $("#spformat").val();
+        var spwidth = $("#spwidth").val();
+        var spheight = $("#spheight").val();
+        var spthickness = $("#spthickness").val();
+        var spbar = $("#spbar").val();
+
+        if (spcode !== "" && Number(spwidth) > 0 && Number(spheight) >0 && Number(spthickness)>0) {
+            $.ajax({
+                type: "POST",
+                url: "/gemo/settheSpdata",
+                data:{"spcode":spcode, "spname":spname, "spformat":spformat, "spwidth":spwidth, "spheight":spheight, "spthickness":spthickness, "spbar":spbar, "spuuid":spuuid},
+                dataType: "json",
+                cache:false,
+                async:false,
+                //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                success:function(data){
+                    $("#spuuid").attr("value", data["_id"]);
+                    var spcode = $("#spcode").val();   //刷新商品图像
+                    var number = Math.random();
+                    $("#SpBoxPic").attr('src', '/site_media/sp2/'+spcode+'.jpg?x='+number);
+                    $("#SpBoxPic_r").attr('src', '/site_media/sp2/'+spcode+'r.jpg?x='+number);
+                    $("#SpBoxPic_c").attr('src', '/site_media/sp2/'+spcode+'c.jpg?x='+number);
+                    $("#SpBoxPic_d").attr('src', '/site_media/sp2/'+spcode+'d.jpg?x='+number);
+                    $("#SpBoxPic_b").attr('src', '/site_media/sp2/'+spcode+'b.jpg?x='+number);
+                    //修改图像信号
+                    alert(data["tag"]);//提示是否修改成功
+                }
+            })
+        } else {
+            alert("数据错误,不能保存")
+        }
+    };
+    //显示图片
+    showspimg = function(side){
+            var spcode = $("#spcode").val()
+            if (spcode != "") {
+                window.open("/site_media/upload/"+spcode+side+".jpg", "imgshow")
+            } else {
+                alert('请先输入商品代码')
+            }
+    }
+</script>
+<div id='div_all'>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+              <!--<img alt="Brand" src="http://www.sinopec.com/s/images/logo.gif">-->
+            </a>
+          </div>
+          <h4 class="navbar-text">设置商品外形尺寸和图像                    </h4>
+          <button type="button" id="button__save" class="btn  btn-success  navbar-btn">保存</button>
+          <button type="button" id="button__imgsave" class="btn  btn-success  navbar-btn">上传商品图像</button>
+          <!--<button type="button" id="button__imgdel" class="btn  btn-danger  navbar-btn">删除商品图像</button>          
+          <button type="button" id="button__imgshow" class="btn   btn-warning  navbar-btn">下载商品图像</button> -->    
+          <div class="dropdown btn ">
+            <button id="dLabel" type="button" class="btn  btn-danger  navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              删除商品图像
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a href="javascript:delspimg('0')">删除商品 正面 图像</a></li>
+                <li><a href="javascript:delspimg('c')">删除商品 侧面 图像</a></li>
+                <li><a href="javascript:delspimg('d')">删除商品 底面 图像</a></li>                
+                <li><a href="javascript:delspimg('b')">删除商品 背面 图像</a></li>
+            </ul>
+          </div>
+          <div class="dropdown btn ">
+            <button id="dLabel" type="button" class="btn  btn-warning  navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              下载商品图像
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a href="javascript:showspimg('')">下载商品 正面 图像</a></li>
+                <li><a href="javascript:showspimg('c')">下载商品 侧面 图像</a></li>
+                <li><a href="javascript:showspimg('d')">下载商品 底面 图像</a></li>                
+                <li><a href="javascript:showspimg('b')">下载商品 背面 图像</a></li>
+            </ul>
+          </div> 
+        </div>
+    </nav>
+    <div id="PicBox" style="position:absolute;left:650px;width:180px">
+         <div title="商品正面图像"><img id="SpBoxPic"  style="display:block;" src="" alt="商品正面图像"></div>
+        <br>
+         <div title="商品旋转90度图像"><img id="SpBoxPic_r"  style="display:block;" src="" alt="商品旋转90度图像"></div>
+        <br>
+         <div title="商品侧面图像"><img id="SpBoxPic_c"  style="display:block;" src="" alt="商品侧面图像"></div>
+        <br>
+         <div title="商品底面图像"><img id="SpBoxPic_d"  style="display:block;" src="" alt="商品底面图像"></div>
+        <br>
+         <div title="商品背面图像"><img id="SpBoxPic_b"  style="display:block;" src="" alt="商品背面图像"></div>
+    </div>
+    <form class="form-horizontal">
+        <!--商品代码输入，获取图片信息-->
+        <!--readonly:属性设置或返回文本域是否为只读-->
+        <input style="display: none" id="spuuid" value="" readonly>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">商品代码</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spcode" placeholder="">
+            </div>
+        </div>
+         <!--商品代码输入，获取图片信息-->
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">商品名称</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spname" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">商品规格</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spformat" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">外形高度:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spheight" placeholder="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">外形宽度:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spwidth" placeholder="" >      
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">外形厚度:单位(毫米)</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spthickness" placeholder="" >
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">条形码</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="spbar" placeholder="" >
+            </div>
+        </div>   
+    </form>
+    
+    <div style="position:absolute;left:100px;top:420px;">        
+        <p>说明：</P>
+        <p>    
+            正面照文件命名：<b>商品代码.jpg</b>   (例如: 03050001.jpg)<br>
+            侧面照文件命名：<b>商品代码c.jpg</b>  (例如: 03050001c.jpg<br>
+            底面照文件命名：<b>商品代码d.jpg</b>  (例如: 03050001d.jpg<br>     
+            背面照文件命名：<b>商品代码b.jpg</b>  (例如: 03050001b.jpg<br> 
+        </p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="zh">
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/jquery-ui-1.8.18.custom/js/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/js/kinetic-v4.3.3.js"></script>
+    <script type="text/javascript" src="/gemo/lzhj/static/lzhj/json/json2.js"></script>
+    
+    <link type="text/css" href="/gemo/lzhj/static/lzhj/jquery-ui-1.8.18.custom/css/custom-theme/jquery-ui-1.8.20.custom.css" rel="stylesheet" />
+    <style type="text/css">
+        /* 
+
+	TableCloth	
+	by Alen Grakalic, brought to you by cssglobe.com
+	
+            */
+        
+            
+            /* general styles */
+            
+            table, td{
+                    font:100% Arial, Helvetica, sans-serif; 
+            }
+            table{border-collapse:collapse;margin:1em 0; }
+            th, td{text-align:left;padding:.5em;border:1px solid #fff;}
+            th{background:#328aa4 url(tr_back.gif) repeat-x;color:#fff;}
+            td{background:#e5f1f4;}
+            
+            /* tablecloth styles */
+            
+            tr.even td{background:#e5f1f4;}
+            tr.odd td{background:#f8fbfc;}
+            
+            th.over, tr.even th.over, tr.odd th.over{background:#4a98af;}
+            th.down, tr.even th.down, tr.odd th.down{background:#bce774;}
+            th.selected, tr.even th.selected, tr.odd th.selected{}
+            
+            td.over, tr.even td.over, tr.odd td.over{background:#ecfbd4;}
+            td.down, tr.even td.down, tr.odd td.down{background:#bce774;color:#fff;}
+            td.selected, tr.even td.selected, tr.odd td.selected{background:#bce774;color:#555;}
+            
+            /* use this if you want to apply different styleing to empty table cells*/
+            td.empty, tr.odd td.empty, tr.even td.empty{background:#fff;}
+	    
+
+
+
+    </style>
+
+<head>
+    <title>配置立柱</title>
+    
+</head>
+<body>
+    
+    <script type="text/javascript">
+   
+    var po = {x:239, y:10}
+    
+    var li = 0.5   //比例尺
+    
+    
+    var lzimg = function(){
+	
+	var stage = new Kinetic.Stage({
+	    container: 'container',
+	    width: 1000,
+	    height: 1200
+	    });
+	var layer = new Kinetic.Layer();
+	
+	stage.add(layer);
+	
+	
+	var mydraw = function(lz, li, po){
+	    layer.clear()	    
+		var rect1 = new Kinetic.Rect({
+		x: po.x,
+		y: po.y,
+		width: lz.w*li,
+		height: lz.l*li,
+		fill: 'white',
+		stroke: 'black',
+		strokeWidth: 1
+	      });
+	    
+	    layer.add(rect1);
+	    
+	    var h
+	    
+	    for (var i=0; i<lz.hc; i=i+1){
+		//console.log(i)
+		if (i !== lz.hc-1) {
+		    h = po.y + lz.tl*li + (lz.hl+lz.hh)* li*i
+		} else {
+		    //alert("x")
+		    h = po.y + lz.tl*li + (lz.hl+lz.hh)* li*i + (lz.dl-lz.hh)*li
+		}
+		
+		//console.log(po.x+(lz.w-lz.hw)*0.5*li)
+		//console.log(h)
+		hole = new Kinetic.Rect({
+		    x: po.x+(lz.w-lz.hw)*0.5*li,
+		    y: h,
+		    width: lz.hw*li,
+		    height: lz.hh*li,
+		    fill: 'black',
+		    stroke: 'black',
+		    strokeWidth: 1
+		  });
+		
+		layer.add(hole)
+	      }
+	  
+	    
+	    layer.draw()
+	    
+	    
+	  
+	  
+	      
+	    }
+	
+	
+	  
+	return {
+	    draw: function lzdraw(lz, li, po){		
+		mydraw(lz, li, po)
+		
+	    },
+	    clear: function(){
+		
+		layer.clear()
+		alert("clear")
+		layer.draw()
+	    }
+	}
+	
+    }
+    
+    
+    
+    
+    var clearlzinfo = function(){
+	//alert("x")
+	$("#lz_code").attr('value', '');
+        $("#lz_name").attr('value', '');
+        $("#lz_l").attr('value', '');
+        $("#lz_w").attr('value', '');
+        $("#lz_tl").attr('value', '');
+        $("#lz_hh").attr('value', '');
+	$("#lz_hl").attr('value', '');
+        $("#lz_hc").attr('value', '');
+        $("#lz_hw").attr('value', '');
+	$("#lz_dl").attr('value', '');        
+    }
+    
+    
+    
+
+    
+    var setlzinfo=function(){
+	
+	var lzinfo = {	}
+	
+        lzinfo.code = $("#lz_code").val()
+        lzinfo.name = $("#lz_name").val()
+        lzinfo.l = Number($("#lz_l").val())
+        lzinfo.w = Number($("#lz_w").val())
+        lzinfo.tl = Number($("#lz_tl").val())
+        lzinfo.hh = Number($("#lz_hh").val())
+	lzinfo.hl = Number($("#lz_hl").val())
+        lzinfo.hc = Number($("#lz_hc").val())
+        lzinfo.hw = Number($("#lz_hw").val())
+	lzinfo.dl = Number($("#lz_dl").val())   
+        
+        
+        
+        if (lzinfo.code =="" || lzinfo.name== "" || lzinfo.l == "" || lzinfo.w =="" || lzinfo.tl== "" || lzinfo.hh == "" || lzinfo.hl =="" || lzinfo.hc== "" || lzinfo.hw == ""  || lzinfo.dl == "" ){
+            
+            alert("数据不能为空")
+	    return false
+        }
+        
+        if (Number(lzinfo.l)>0){}
+        else {
+	    alert("立柱高度不是数值")
+	    return false
+	}
+	
+	if (Number(lzinfo.w)>0){}
+        else { alert("立柱宽度不是数值")
+	     return false}
+	
+	if (Number(lzinfo.tl)>0){}
+        else {
+	    alert("顶边距不是数值")
+	    return false}
+	
+	
+	if (Number(lzinfo.hh)>0){}
+        else {
+	    alert("孔高不是数值")
+	    return false}
+	
+	if (Number(lzinfo.hl)>0){}
+        else {
+	    alert("孔距不是数值")
+	    return false}
+	
+	if (Number(lzinfo.hc)>0){}
+        else {
+	    alert("孔数不是数值")
+	    return false}
+	
+	if (Number(lzinfo.hw)>0){}
+        else {  alert("孔宽不是数值")
+	    return false}
+        
+        if (Number(lzinfo.dl)>0){}
+        else {
+	    alert("底边高不是数值")
+	    return false}
+	
+	
+	
+	
+	return lzinfo
+    }
+    
+    
+    var savelzinfo  = function(lzinfo){
+	var lzinfostr = JSON.stringify(lzinfo);
+        $.ajax({
+                    type: "POST",
+                    url: "/gemo/setlzinfo",
+                    data:{"lzinfo":lzinfostr,'comp':'yk', 'parentcomp':'yz'},                        
+                    dataType: "text",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    success:function(data){
+                        alert("保存数据成功")
+                    },
+		    error:function(){
+			alert("保存数据失败")
+		    }
+                });
+    }
+    
+    
+    $(document).ready(function() {
+	
+	mylzimg = lzimg()
+	
+        clearlzinfo()
+        
+        
+	
+        $("#lz_save").bind("click", function(){
+	    //alert("save")
+            var lzinfo= setlzinfo()
+	    if (lzinfo == false){
+		alert("数据有误，不能保存")
+	    } else {
+		 savelzinfo(lzinfo)
+		 mylzimg.draw(lzinfo,li,po)
+	    }
+	    
+        })
+        
+        $("#lz_draw").bind("click",function(){
+            var lzinfo= setlzinfo()
+	    if (lzinfo == false){
+		mylzimg.clear()
+	    } else {
+		 mylzimg.draw(lzinfo,li,po)
+	    }
+	   
+        })
+	
+	$("#lz_code").blur(function(){
+            var lz_code = $("#lz_code").val();	    
+	    
+            $.ajax({
+                    type: "POST",
+                    url: "/gemo/getlzinfo",
+                    data:{"value":lz_code, "item":"code", "comp":"yk", "parentcomp":'yz'},                        
+                    dataType: "json",
+                    cache:false,
+                    async:false,
+                    //ifModified :false, //实时更新，在ie中设为ture，在ff中设为false。
+                    success:function(data){
+			
+                        if ( data !== null){                            
+                            
+                            $("#lz_name").attr('value', data['name']);
+                            $("#lz_l").attr('value', data['l']);
+                            $("#lz_w").attr('value', data['w']);
+                            $("#lz_tl").attr('value', data['tl']);
+                            $("#lz_hh").attr('value', data['hh']);
+                            $("#lz_hl").attr('value', data['hl']);
+                            $("#lz_hc").attr('value', data['hc']);
+                            $("#lz_hw").attr('value', data['hw']);
+                            $("#lz_dl").attr('value', data['dl']);
+                            var lzinfo= setlzinfo()
+                            if (lzinfo ===  false){
+                            mylzimg.clear()
+                            } else {
+                             mylzimg.draw(lzinfo,li,po)
+                            }
+                            
+                        } 
+                    }                      
+                });
+            })
+        
+    })
+
+      
+
+      
+      
+      
+      
+      
+      
+      
+    </script>
+    <h1>配置立柱</h1>
+    <div id="lzBox" style="position:absolute;left:50px;" >
+            <table>
+		<tr><td><label  style=""  for="UserCode">立柱代码:</label></td><td><input  style=""  type="text" id="lz_code"></td></tr>
+                <tr><td><label  style=""  for="Password">立柱类型:</label></td><td><input  style=""  type="text" id="lz_name"></td></tr>
+		<tr><td><label  style=""  for="Password">立柱高度(毫米):</label></td><td><input  style=""  type="text" id="lz_l"></td></tr>
+		<tr><td><label  style=""  for="Password">立柱宽度(毫米):</label></td><td><input  style=""  type="text" id="lz_w"></td></tr>
+		<tr><td><label  style=""  for="Password">顶边距(毫米):</label></td><td><input  style=""  type="text" id="lz_tl"></td></tr>		
+		<tr><td><label  style=""  for="Password">孔高(毫米):</label></td><td><input  style=""  type="text" id="lz_hh"></td></tr>
+		<tr><td><label  style=""  for="Password">孔距(毫米):</label></td><td><input  style=""  type="text" id="lz_hl"></td></tr>
+		<tr><td><label  style=""  for="Password">孔数:</label></td><td><input  style=""  type="text" id="lz_hc"></td></tr>
+		<tr><td><label  style=""  for="Password">孔宽(毫米):</label></td><td><input  style=""  type="text" id="lz_hw"></td></tr>
+		<tr><td><label  style=""  for="Password">底边距(毫米):</label></td><td><input  style=""  type="text" id="lz_dl"></td></tr>
+		<tr align="center"><td valign="center"><input  style=""  type="button" id="lz_draw" value="画图"></td><td valign="center"><input  style=""  type="button" id="lz_save" value="保存"></td></tr>
+	    
+	    </table>
+        
+            
+        
+    </div>
+    <div id="container" style="position:absolute;left:250px;" ></div>
+    
+</body>
+</html>
